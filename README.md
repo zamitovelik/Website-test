@@ -27,8 +27,13 @@ npm run dev
 ```
 
 Сайт откроется на http://localhost:5173, запросы к `/api` уходят на бэкенд
-через прокси Vite. Настройка почты и создание пользователей описаны в
-[backend/README.md](backend/README.md).
+через прокси Vite. Чтобы заявки приходили на почту, запустите в папке `backend` мастер настройки:
+
+```bash
+python -m scripts.setup_mail
+```
+
+Подробности — в [backend/README.md](backend/README.md).
 
 ## Команды фронтенда
 
