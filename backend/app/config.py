@@ -15,7 +15,16 @@ class Settings(BaseSettings):
     # Приложение
     secret_key: str = "dev-secret-change-me"
     access_token_expire_minutes: int = 1440
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Домены, которым разрешено обращаться к API. По умолчанию — локальная
+    # разработка и опубликованный сайт, чтобы не задавать это вручную на хостинге.
+    cors_origins: str = (
+        "http://localhost:5173,"
+        "http://127.0.0.1:5173,"
+        "https://website-murex-two-60.vercel.app,"
+        "https://website-zamitoveliks-projects.vercel.app"
+    )
+    # Необязательный шаблон — например ^https://.*\.vercel\.app$ для превью-сборок.
+    cors_origin_regex: str = ""
     database_url: str = "sqlite:///./apogee.db"
 
     # Почта
