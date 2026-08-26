@@ -29,12 +29,15 @@ def _ensure_sqlite_dir(url: str) -> None:
         parent.mkdir(parents=True, exist_ok=True)
 
 
-_ensure_sqlite_dir(settings.database_url)
+DB_URL = settings.sqlalchemy_url
+
+_ensure_sqlite_dir(DB_URL)
 
 # check_same_thread=False нужен, потому что FastAPI обслуживает запросы в пуле потоков.
 engine = create_engine(
-    settings.database_url,
-    connect_args={"check_same_thread": False} if settings.database_url.startswith("sqlite") else {},
+    DB_URL,
+    pool_pre_ping=True,
+    connect_args={"check_same_thread": False} if DB_URL.startswith("sqlite") else {},
 )
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
@@ -47,7 +50,7 @@ class Base(DeclarativeBase):
 @event.listens_for(Engine, "connect")
 def _set_sqlite_pragma(dbapi_connection, _connection_record) -> None:
     """WAL заметно лучше держит одновременные чтение и запись в SQLite."""
-    if settings.database_url.startswith("sqlite"):
+    if DB_URL.startswith("sqlite"):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA foreign_keys=ON")
@@ -74,7 +77,7 @@ def init_db() -> None:
 # только новые таблицы и не трогает существующие, поэтому добавляем вручную.
 _LATER_COLUMNS: dict[str, dict[str, str]] = {
     "leads": {
-        "telegram_sent": "BOOLEAN DEFAULT 0",
+        "telegram_sent": "BOOLEAN DEFAULT false",
         "telegram_error": "TEXT",
     },
 }
