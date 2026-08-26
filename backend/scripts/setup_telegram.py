@@ -23,6 +23,48 @@ WAIT_SECONDS = 180
 POLL_EVERY = 3
 
 
+TOKEN_FILE = Path(__file__).resolve().parents[1] / "token.txt"
+
+
+def read_token() -> str | None:
+    """
+    Берёт токен из файла token.txt, если он есть, иначе спрашивает в терминале.
+
+    Вариант с файлом нужен потому, что вставка в консоль Windows срабатывает
+    не всегда, а в Блокноте — всегда. Файл удаляется сразу после чтения,
+    чтобы токен не лежал на диске открытым текстом.
+    """
+    if TOKEN_FILE.exists():
+        token = TOKEN_FILE.read_text(encoding="utf-8-sig").strip()
+        try:
+            TOKEN_FILE.unlink()
+            removed = True
+        except OSError:
+            removed = False
+
+        if not token:
+            print(f"Файл {TOKEN_FILE.name} пустой — вставьте в него токен и сохраните.")
+            return None
+
+        print(f"Токен прочитан из файла {TOKEN_FILE.name}")
+        print("   файл удалён" if removed else f"   ВНИМАНИЕ: удалите {TOKEN_FILE} вручную")
+        return token
+
+    # Токен — ключ доступа к боту, поэтому вводим его скрыто: так он не
+    # останется на экране и в истории терминала.
+    print(f"(Подсказка: если вставка в это окно не работает, положите токен")
+    print(f" в файл {TOKEN_FILE} и запустите скрипт снова.)\n")
+    token = getpass.getpass("Вставьте токен бота (при вводе не отображается): ").strip()
+
+    if not token:
+        print("Ничего не введено. Похоже, вставка не сработала:")
+        print("   попробуйте Ctrl+V, правую кнопку мыши —")
+        print(f"   или положите токен в файл {TOKEN_FILE.name} и запустите скрипт снова.")
+        return None
+
+    return token
+
+
 def find_chat_id(token: str, bot_username: str) -> str | None:
     """
     Ждёт, пока пользователь напишет боту, и достаёт chat_id из обновлений.
@@ -63,12 +105,8 @@ def main() -> int:
     print("  3. Придумайте имя бота, затем логин, оканчивающийся на bot")
     print("  4. BotFather пришлёт строку вида 1234567890:AAH...  — это токен\n")
 
-    # Токен — это ключ доступа к боту, поэтому вводим его скрыто:
-    # так он не останется на экране и в истории терминала.
-    token = getpass.getpass("Вставьте токен бота (при вводе не отображается): ").strip()
+    token = read_token()
     if not token:
-        print("Ничего не введено. Похоже, вставка не сработала:")
-        print("   попробуйте Ctrl+V, а если не помогает — правую кнопку мыши.")
         return 1
 
     print(f"   принято символов: {len(token)}")

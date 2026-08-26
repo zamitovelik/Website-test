@@ -3,6 +3,7 @@
 *.db-shm
 *.db-wal
 *.db-journal
+token.txt
 __pycache__/
 *.py[cod]
 .venv/
