@@ -7,7 +7,7 @@ from app.models import Lead, User
 from app.notifications import notify_lead
 from app.ratelimit import client_ip, leads_limiter
 from app.schemas import ContactRequestIn, DemoRequestIn, LeadAccepted, LeadListOut, LeadOut
-from app.security import get_current_user
+from app.security import require_admin
 
 router = APIRouter(prefix="/api/leads", tags=["Заявки"])
 
@@ -18,9 +18,9 @@ def list_leads(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _admin: User = Depends(require_admin),
 ) -> LeadListOut:
-    """Список заявок для личного кабинета. Требует входа."""
+    """Список заявок. Только для администраторов — внутри персональные данные."""
     query = db.query(Lead)
     if kind:
         query = query.filter(Lead.kind == kind)

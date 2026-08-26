@@ -68,3 +68,13 @@ def get_current_user(
         raise credentials_error
 
     return user
+
+
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Заявки содержат персональные данные клиентов — пускаем только админов."""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Недостаточно прав: раздел доступен только администратору",
+        )
+    return current_user

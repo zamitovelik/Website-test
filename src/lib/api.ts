@@ -123,6 +123,8 @@ export type AuthUser = {
   id: number;
   email: string;
   full_name: string | null;
+  /** Заявки с чужими контактами видны только администраторам. */
+  is_admin: boolean;
   last_login_at: string | null;
 };
 
@@ -165,6 +167,12 @@ const authHeaders = (): Record<string, string> => {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
+
+export const register = (data: { email: string; full_name: string; password: string }) =>
+  request<TokenResponse>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 
 export const login = (email: string, password: string) =>
   request<TokenResponse>('/api/auth/login', {

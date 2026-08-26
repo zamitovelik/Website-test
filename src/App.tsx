@@ -8,6 +8,7 @@ import Resources from '@/pages/Resources';
 import Blog from '@/pages/Blog';
 import Login from '@/pages/Login';
 import Leads from '@/pages/Leads';
+import Register from '@/pages/Register';
 import Demo from '@/pages/Demo';
 import Contact from '@/pages/Contact';
 import NotFound from '@/pages/NotFound';
@@ -23,6 +24,7 @@ function App() {
         <Route path="/resources" element={<Resources />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/leads"
           element={

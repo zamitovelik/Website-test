@@ -5,6 +5,7 @@ import {
   fetchMe,
   getToken,
   login as apiLogin,
+  register as apiRegister,
   saveToken,
   type AuthUser,
 } from '@/lib/api';
@@ -47,14 +48,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(result.user);
   }, []);
 
+  const signUp = useCallback(
+    async (data: { email: string; full_name: string; password: string }) => {
+      const result = await apiRegister(data);
+      // Новый аккаунт запоминаем: человек только что его создал и вряд ли
+      // хочет вводить пароль заново на следующей странице.
+      saveToken(result.access_token, true);
+      setUser(result.user);
+    },
+    []
+  );
+
   const signOut = useCallback(() => {
     clearToken();
     setUser(null);
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, signIn, signOut }),
-    [user, loading, signIn, signOut]
+    () => ({ user, loading, signIn, signUp, signOut }),
+    [user, loading, signIn, signUp, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -27,7 +27,9 @@ export default function PageShell({
         <div className="absolute bottom-[-30%] left-[20%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] rounded-full bg-[radial-gradient(circle,rgba(38,50,150,0.14),transparent_70%)] blur-[110px]" />
       </div>
 
-      <div className="relative z-10">
+      {/* z-50, а не z-10: у <main> ниже тот же z-10, и он идёт следующим в
+          разметке — при равном порядке он перекрывал бы выпадающее меню шапки. */}
+      <div className="relative z-50">
         <Nav />
       </div>
 

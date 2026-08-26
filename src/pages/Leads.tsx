@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, Building2, Check, Loader2, Mail, RefreshCw, Send, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlertCircle, Building2, Check, Loader2, Lock, Mail, RefreshCw, Send, X } from 'lucide-react';
 import PageShell from '@/components/PageShell';
 import Animate from '@/components/Animate';
 import { btnSubtle } from '@/lib/ui';
@@ -129,6 +130,36 @@ function LeadCard({ lead }: { lead: Lead }) {
   );
 }
 
+/** Что видит вошедший, но не администратор. */
+function NoAccess({ onSignOut }: { onSignOut: () => void }) {
+  return (
+    <PageShell narrow eyebrow="Личный кабинет" title="Доступ ограничен">
+      <Animate delay={400} direction="scale">
+        <div className="rounded-[24px] bg-[rgba(17,16,15,0.45)] border border-white/[0.08] backdrop-blur-[30px] p-8 text-center">
+          <div className="w-[56px] h-[56px] rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-5 h-5 text-white/70" />
+          </div>
+          <p className="text-white text-[19px] font-[450] leading-[1.3] mb-3">
+            Раздел заявок доступен только администратору
+          </p>
+          <p className="text-white/65 text-[15px] font-[450] leading-[1.55] mb-8">
+            В заявках лежат имена, почта и сообщения других людей, поэтому список открыт не
+            всем. Если доступ нужен по работе — напишите команде.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link to="/contact" className={btnSubtle}>
+              Запросить доступ
+            </Link>
+            <button onClick={onSignOut} className={btnSubtle}>
+              Выйти
+            </button>
+          </div>
+        </div>
+      </Animate>
+    </PageShell>
+  );
+}
+
 export default function Leads() {
   const { user, signOut } = useAuth();
   const [filter, setFilter] = useState<FilterKey>('all');
@@ -157,9 +188,15 @@ export default function Leads() {
     []
   );
 
+  const isAdmin = user?.is_admin ?? false;
+
   useEffect(() => {
-    load(filter, page);
-  }, [filter, page, load]);
+    if (isAdmin) load(filter, page);
+  }, [filter, page, load, isAdmin]);
+
+  if (user && !isAdmin) {
+    return <NoAccess onSignOut={signOut} />;
+  }
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 

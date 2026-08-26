@@ -131,11 +131,10 @@ export default function Login() {
           <div className="h-px bg-white/10 my-6" />
 
           <p className="text-center text-white/60 text-[14px] font-[450] leading-[1.5]">
-            Аккаунты создаёт администратор.{' '}
-            <Link to="/contact" className="text-white hover:underline">
-              Напишите нам
+            Ещё нет аккаунта?{' '}
+            <Link to="/register" className="text-white hover:underline">
+              Зарегистрироваться
             </Link>
-            , если нужен доступ.
           </p>
         </div>
       </Animate>

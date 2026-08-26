@@ -71,6 +71,7 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _add_missing_columns()
+    _ensure_first_user_is_admin()
 
 
 # Колонки, появившиеся после первого выпуска. create_all() умеет создавать
@@ -79,6 +80,9 @@ _LATER_COLUMNS: dict[str, dict[str, str]] = {
     "leads": {
         "telegram_sent": "BOOLEAN DEFAULT false",
         "telegram_error": "TEXT",
+    },
+    "users": {
+        "is_admin": "BOOLEAN DEFAULT false",
     },
 }
 
@@ -98,3 +102,25 @@ def _add_missing_columns() -> None:
             for name, definition in columns.items():
                 if name not in present:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {definition}"))
+
+
+def _ensure_first_user_is_admin() -> None:
+    """
+    Гарантирует, что администратор в системе есть хотя бы один.
+
+    Колонка is_admin появилась позже и по умолчанию false, поэтому у аккаунтов,
+    созданных раньше, доступ к заявкам иначе пропал бы. Тот же случай — первый
+    зарегистрировавшийся на пустой базе: он и становится администратором.
+    """
+    from sqlalchemy import text
+
+    with engine.begin() as conn:
+        has_admin = conn.execute(
+            text("SELECT 1 FROM users WHERE is_admin = true LIMIT 1")
+        ).first()
+        if has_admin:
+            return
+
+        first_id = conn.execute(text("SELECT id FROM users ORDER BY id LIMIT 1")).scalar()
+        if first_id is not None:
+            conn.execute(text("UPDATE users SET is_admin = true WHERE id = :id"), {"id": first_id})

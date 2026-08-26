@@ -61,12 +61,20 @@ class LoginIn(BaseModel):
     password: str = Field(min_length=1, max_length=200)
 
 
+class RegisterIn(BaseModel):
+    email: EmailStr
+    full_name: str = Field(default="", max_length=200)
+    # bcrypt читает только первые 72 байта, поэтому длиннее принимать незачем.
+    password: str = Field(min_length=8, max_length=72)
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     email: str
     full_name: str | None
+    is_admin: bool
     last_login_at: datetime | None
 
 

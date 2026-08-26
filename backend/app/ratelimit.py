@@ -46,3 +46,5 @@ def client_ip(request: Request) -> str:
 # 5 заявок за 10 минут с одного адреса, 10 попыток входа за 5 минут.
 leads_limiter = SlidingWindowLimiter(limit=5, window_seconds=600)
 login_limiter = SlidingWindowLimiter(limit=10, window_seconds=300)
+# Регистрация строже входа: 3 аккаунта в час с одного адреса.
+register_limiter = SlidingWindowLimiter(limit=3, window_seconds=3600)

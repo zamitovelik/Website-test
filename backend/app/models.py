@@ -48,5 +48,8 @@ class User(Base):
     full_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Заявки содержат персональные данные клиентов, поэтому список видят
+    # только администраторы. Обычная регистрация их не выдаёт.
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -6,6 +6,7 @@ export type AuthState = {
   /** true, пока проверяем сохранённый токен при загрузке страницы. */
   loading: boolean;
   signIn: (email: string, password: string, remember: boolean) => Promise<void>;
+  signUp: (data: { email: string; full_name: string; password: string }) => Promise<void>;
   signOut: () => void;
 };
 
