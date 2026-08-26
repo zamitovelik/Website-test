@@ -66,6 +66,7 @@ def health() -> HealthOut:
     return HealthOut(
         status="ok",
         database=database,
+        database_engine=engine.dialect.name,
         mail_configured=settings.mail_enabled,
         telegram_configured=settings.telegram_enabled,
     )

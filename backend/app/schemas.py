@@ -66,5 +66,6 @@ class TokenOut(BaseModel):
 class HealthOut(BaseModel):
     status: str
     database: str
+    database_engine: str
     mail_configured: bool
     telegram_configured: bool
