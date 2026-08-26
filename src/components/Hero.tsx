@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import Animate from '@/components/Animate';
 import Nav from '@/components/Nav';
 import RevenueCard from '@/components/RevenueCard';
@@ -50,6 +51,29 @@ export default function Hero() {
             <RevenueCard />
           </div>
         </div>
+
+        {/* left-0 right-0 вместо left-1/2 + translate: анимация fade-up
+            переопределяет transform, и центрирование через translateX слетело бы. */}
+        <Animate
+          delay={1400}
+          direction="up"
+          className="hidden sm:block absolute bottom-6 left-0 right-0"
+        >
+          <button
+            onClick={() =>
+              document
+                .getElementById('next-section')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+            aria-label="Пролистать вниз"
+            className="mx-auto flex flex-col items-center gap-2 text-white/50 hover:text-white transition-colors"
+          >
+            <span className="text-[12px] font-[450] leading-[12px] tracking-[0.08em] uppercase">
+              Листайте вниз
+            </span>
+            <ChevronDown className="w-4 h-4 animate-bounce" />
+          </button>
+        </Animate>
       </div>
     </section>
   );
