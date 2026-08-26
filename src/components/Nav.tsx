@@ -4,6 +4,7 @@ import { ChevronDown, Menu, X } from 'lucide-react';
 import Animate from '@/components/Animate';
 import Logo from '@/components/Logo';
 import { NAV_LINKS, PLATFORM_MENU } from '@/lib/navigation';
+import { useAuth } from '@/lib/use-auth';
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,7 @@ export default function Nav() {
   const [isMobilePlatformOpen, setIsMobilePlatformOpen] = useState(false);
   const platformRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -128,10 +130,10 @@ export default function Nav() {
         <Animate delay={200} direction="down" className="hidden lg:block">
           <div className="h-[52px] p-[3px] bg-[rgba(0,0,0,0.35)] rounded-[13px] backdrop-blur-[17px] flex items-center gap-[5px]">
             <Link
-              to="/login"
+              to={user ? '/leads' : '/login'}
               className="h-[46px] px-6 flex items-center rounded-[11px] text-white text-[14px] font-[450] leading-[14px] hover:bg-white/5 transition-colors"
             >
-              Войти
+              {user ? 'Заявки' : 'Войти'}
             </Link>
             <Link
               to="/demo"
@@ -254,10 +256,10 @@ export default function Nav() {
               Записаться на демо
             </Link>
             <Link
-              to="/login"
+              to={user ? '/leads' : '/login'}
               className="w-full h-[50px] flex items-center justify-center rounded-[12px] border border-white/30 text-white text-[15px] font-[450] transition-colors hover:bg-white/5"
             >
-              Войти
+              {user ? 'Заявки' : 'Войти'}
             </Link>
           </div>
         </div>

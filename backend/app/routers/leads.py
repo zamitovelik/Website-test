@@ -1,13 +1,45 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Lead
+from app.models import Lead, User
 from app.notifications import notify_lead
 from app.ratelimit import client_ip, leads_limiter
-from app.schemas import ContactRequestIn, DemoRequestIn, LeadAccepted
+from app.schemas import ContactRequestIn, DemoRequestIn, LeadAccepted, LeadListOut, LeadOut
+from app.security import get_current_user
 
 router = APIRouter(prefix="/api/leads", tags=["Заявки"])
+
+
+@router.get("", response_model=LeadListOut)
+def list_leads(
+    kind: str | None = Query(default=None, pattern="^(demo|contact)$"),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> LeadListOut:
+    """Список заявок для личного кабинета. Требует входа."""
+    query = db.query(Lead)
+    if kind:
+        query = query.filter(Lead.kind == kind)
+
+    total = query.with_entities(func.count(Lead.id)).scalar() or 0
+    items = query.order_by(desc(Lead.created_at), desc(Lead.id)).offset(offset).limit(limit).all()
+
+    by_kind = dict(db.query(Lead.kind, func.count(Lead.id)).group_by(Lead.kind).all())
+    counts = {
+        "all": sum(by_kind.values()),
+        "demo": by_kind.get("demo", 0),
+        "contact": by_kind.get("contact", 0),
+    }
+
+    return LeadListOut(
+        items=[LeadOut.model_validate(item) for item in items],
+        total=total,
+        counts=counts,
+    )
 
 
 def _save_lead(request: Request, db: Session, lead: Lead) -> Lead:

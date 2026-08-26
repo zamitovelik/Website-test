@@ -81,7 +81,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 ## Пользователи
 
-Форма входа работает с настоящей базой. Создать пользователя:
+Вход открывает страницу  со списком заявок. Создать пользователя:
 
 ```bash
 python -m scripts.create_user
@@ -97,14 +97,11 @@ python -m scripts.create_user
 | POST | `/api/leads/contact` | Сообщение из формы контактов |
 | POST | `/api/auth/login` | Вход, возвращает JWT |
 | GET | `/api/auth/me` | Текущий пользователь (нужен `Authorization: Bearer …`) |
-| GET | `/api/admin/leads` | Список заявок (нужен заголовок `X-Admin-Token`) |
+| GET | `/api/leads` | Список заявок (нужен вход) |
 | GET | `/api/health` | Состояние сервиса и базы |
 
-Посмотреть заявки из командной строки:
-
-```bash
-curl -H "X-Admin-Token: ВАШ_ТОКЕН" http://localhost:8000/api/admin/leads
-```
+Заявки видно на странице `/leads` — нужно войти под пользователем,
+созданным через `scripts/create_user.py`.
 
 ## Как это устроено
 

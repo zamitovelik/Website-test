@@ -68,17 +68,3 @@ def get_current_user(
         raise credentials_error
 
     return user
-
-
-def require_admin_token(x_admin_token: str | None = Header(default=None)) -> None:
-    """Простая защита админского эндпоинта отдельным токеном из .env."""
-    if not settings.admin_token:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="ADMIN_TOKEN не задан в .env — админский доступ отключён",
-        )
-    if x_admin_token != settings.admin_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный админский токен",
-        )

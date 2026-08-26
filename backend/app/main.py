@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.database import engine, init_db
-from app.routers import admin, auth, leads
+from app.routers import auth, leads
 from app.schemas import HealthOut
 
 logging.basicConfig(
@@ -51,7 +51,6 @@ app.add_middleware(
 
 app.include_router(leads.router)
 app.include_router(auth.router)
-app.include_router(admin.router)
 
 
 @app.get("/api/health", response_model=HealthOut, tags=["Служебное"])

@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer
 
 
 class DemoRequestIn(BaseModel):
@@ -40,6 +40,20 @@ class LeadOut(BaseModel):
     telegram_sent: bool
     telegram_error: str | None
     created_at: datetime
+
+    @field_serializer("created_at")
+    def _utc(self, value: datetime) -> str:
+        # SQLite отдаёт время без часового пояса, Postgres — с ним. Приводим
+        # к единому UTC, иначе браузер примет наивное время за локальное.
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat()
+
+
+class LeadListOut(BaseModel):
+    items: list[LeadOut]
+    total: int
+    counts: dict[str, int]
 
 
 class LoginIn(BaseModel):

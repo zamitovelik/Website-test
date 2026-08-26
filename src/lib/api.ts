@@ -135,29 +135,79 @@ export type TokenResponse = {
 
 const TOKEN_KEY = 'apogee_token';
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+/** «Запомнить меня» решает, переживёт ли сессия закрытие вкладки. */
+export function saveToken(token: string, remember: boolean): void {
+  clearToken();
+  (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
+}
 
-export async function login(
-  email: string,
-  password: string,
-  remember: boolean
-): Promise<TokenResponse> {
-  const result = await request<TokenResponse>('/api/auth/login', {
+export function getToken(): string | null {
+  const token = localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+
+  // Заголовок Authorization принимает только печатные ASCII-символы.
+  // Испорченное значение уронило бы fetch ещё до отправки запроса — тогда
+  // ответа 401 не будет, и токен остался бы в хранилище навсегда.
+  if (!/^[\x21-\x7e]+$/.test(token)) {
+    clearToken();
+    return null;
+  }
+
+  return token;
+}
+
+export function clearToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
+const authHeaders = (): Record<string, string> => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const login = (email: string, password: string) =>
+  request<TokenResponse>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
 
-  if (remember) {
-    localStorage.setItem(TOKEN_KEY, result.access_token);
-  } else {
-    sessionStorage.setItem(TOKEN_KEY, result.access_token);
-  }
+export const fetchMe = () => request<AuthUser>('/api/auth/me', { headers: authHeaders() });
 
-  return result;
+// ── Список заявок (только для вошедших) ──────────────────────────────────────
+
+export type Lead = {
+  id: number;
+  kind: 'demo' | 'contact';
+  name: string;
+  email: string;
+  company: string | null;
+  team_size: string | null;
+  topic: string | null;
+  message: string | null;
+  email_sent: boolean;
+  email_error: string | null;
+  telegram_sent: boolean;
+  telegram_error: string | null;
+  created_at: string;
+};
+
+export type LeadList = {
+  items: Lead[];
+  total: number;
+  counts: { all: number; demo: number; contact: number };
+};
+
+export function fetchLeads(params: {
+  kind?: 'demo' | 'contact';
+  limit?: number;
+  offset?: number;
+} = {}): Promise<LeadList> {
+  const query = new URLSearchParams();
+  if (params.kind) query.set('kind', params.kind);
+  if (params.limit != null) query.set('limit', String(params.limit));
+  if (params.offset != null) query.set('offset', String(params.offset));
+
+  const suffix = query.toString() ? `?${query}` : '';
+  return request<LeadList>(`/api/leads${suffix}`, { headers: authHeaders() });
 }
-
-export const fetchMe = () =>
-  request<AuthUser>('/api/auth/me', {
-    headers: { Authorization: `Bearer ${getToken() ?? sessionStorage.getItem(TOKEN_KEY) ?? ''}` },
-  });
