@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from pathlib import Path
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
@@ -7,6 +8,28 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from app.config import get_settings
 
 settings = get_settings()
+
+
+def _ensure_sqlite_dir(url: str) -> None:
+    """
+    Создаёт папку для файла базы, если её нет.
+
+    На Railway база лежит на подключённом диске (например /data/apogee.db).
+    Если папку не создать заранее, SQLite падает с «unable to open database file».
+    """
+    if not url.startswith("sqlite"):
+        return
+
+    path = url.split("sqlite:///", 1)[-1]
+    if not path or path == ":memory:":
+        return
+
+    parent = Path(path).expanduser().parent
+    if str(parent) not in ("", "."):
+        parent.mkdir(parents=True, exist_ok=True)
+
+
+_ensure_sqlite_dir(settings.database_url)
 
 # check_same_thread=False нужен, потому что FastAPI обслуживает запросы в пуле потоков.
 engine = create_engine(
