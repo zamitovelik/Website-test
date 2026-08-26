@@ -73,7 +73,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Apogee. Все права защищены.
           </p>
           <p className="text-white/40 text-[13px] font-[450] leading-[13px]">
-            Демонстрационный проект — формы не отправляют данные на сервер.
+            Демонстрационный проект.
           </p>
         </div>
       </div>
