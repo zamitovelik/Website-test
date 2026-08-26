@@ -178,13 +178,6 @@ def main() -> int:
         print("Логин не может быть пустым.")
         return 1
 
-    password = getpass.getpass("Пароль приложения (при вводе не отображается): ").strip()
-    if not password:
-        print("Пароль не может быть пустым.")
-        return 1
-    # Google показывает пароль группами по 4 символа — пробелы внутри не нужны.
-    password = password.replace(" ", "")
-
     mail_from = input(f"Адрес отправителя (Enter — взять {user}): ").strip() or user
     mail_to = input(f"Куда присылать заявки (Enter — взять {user}): ").strip() or user
 
@@ -192,18 +185,59 @@ def main() -> int:
         "SMTP_HOST": host,
         "SMTP_PORT": str(port),
         "SMTP_USER": user,
-        "SMTP_PASSWORD": password,
+        "SMTP_PASSWORD": "",
         "SMTP_STARTTLS": "true" if starttls else "false",
         "MAIL_FROM": mail_from,
         "MAIL_TO": mail_to,
     }
 
-    print("\nПроверяю подключение…")
-    error = send_test(values)
-    if error:
+    # До трёх попыток: пароль легко вставить не полностью, и перезапускать
+    # весь скрипт из-за этого не нужно.
+    for attempt in range(1, 4):
+        print()
+        password = getpass.getpass("Пароль приложения (при вводе не отображается): ")
+        # Google показывает пароль группами по 4 символа — пробелы внутри не нужны.
+        password = password.replace(" ", "").replace("\t", "").strip()
+
+        if not password:
+            print("Ничего не введено. Похоже, вставка не сработала:")
+            print("   попробуйте Ctrl+V, а если не помогает — правую кнопку мыши.")
+            continue
+
+        # Подсказка без раскрытия пароля: видно только длину и состав.
+        print(f"   принято символов: {len(password)}")
+
+        if choice == "1" and (len(password) != 16 or not password.isalpha()):
+            print("   Похоже, это не пароль приложения Google.")
+            print("   Он состоит ровно из 16 латинских букв без цифр и знаков")
+            print("   (Google показывает их как 4 группы по 4 буквы).")
+            print("   Обычный пароль от аккаунта Gmail не подойдёт.")
+            if attempt < 3:
+                again = input("   Ввести ещё раз? [Д/н]: ").strip().lower()
+                if again in ("", "д", "да", "y", "yes"):
+                    continue
+            return 1
+
+        values["SMTP_PASSWORD"] = password
+
+        print("\nПроверяю подключение…")
+        error = send_test(values)
+        if not error:
+            break
+
         print(f"\nНе получилось: {error}")
-        print("\nФайл .env не изменён — исправьте данные и запустите скрипт ещё раз.")
-        return 1
+        if attempt < 3:
+            print("\nЧастые причины:")
+            print("   • пароль удалён на странице паролей приложений — создайте новый;")
+            print("   • скопирован не тот пароль;")
+            print("   • вставилась только часть пароля.")
+            again = input("\nПопробовать ещё раз? [Д/н]: ").strip().lower()
+            if again not in ("", "д", "да", "y", "yes"):
+                print("\nФайл .env не изменён.")
+                return 1
+        else:
+            print("\nФайл .env не изменён — создайте новый пароль приложения и запустите скрипт снова.")
+            return 1
 
     lines = update_env(read_env_lines(), values)
     ENV_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
