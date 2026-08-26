@@ -44,3 +44,31 @@ def init_db() -> None:
     from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    _add_missing_columns()
+
+
+# Колонки, появившиеся после первого выпуска. create_all() умеет создавать
+# только новые таблицы и не трогает существующие, поэтому добавляем вручную.
+_LATER_COLUMNS: dict[str, dict[str, str]] = {
+    "leads": {
+        "telegram_sent": "BOOLEAN DEFAULT 0",
+        "telegram_error": "TEXT",
+    },
+}
+
+
+def _add_missing_columns() -> None:
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    with engine.begin() as conn:
+        for table, columns in _LATER_COLUMNS.items():
+            if table not in existing_tables:
+                continue
+
+            present = {col["name"] for col in inspector.get_columns(table)}
+            for name, definition in columns.items():
+                if name not in present:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {definition}"))

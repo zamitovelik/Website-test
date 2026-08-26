@@ -92,7 +92,9 @@ def update_env(lines: list[str], values: dict[str, str]) -> list[str]:
                 continue
         result.append(line)
 
-    missing = [k for k in MAIL_KEYS if k in values and k not in seen]
+    # Ключей, которых в файле ещё нет, дописываем в конец — порядок берём
+    # из values, чтобы функция подходила не только для почтовых настроек.
+    missing = [k for k in values if k not in seen]
     if missing:
         result.append("")
         for key in missing:

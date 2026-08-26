@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     mail_from_name: str = "Apogee"
     mail_to: str = ""
 
+    # Telegram
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+
     # Админка
     admin_token: str = ""
 
@@ -39,6 +43,10 @@ class Settings(BaseSettings):
     def mail_enabled(self) -> bool:
         """Письма уходят только если SMTP и получатель настроены полностью."""
         return bool(self.smtp_host and self.smtp_user and self.smtp_password and self.mail_to)
+
+    @property
+    def telegram_enabled(self) -> bool:
+        return bool(self.telegram_bot_token and self.telegram_chat_id)
 
 
 @lru_cache

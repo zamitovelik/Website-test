@@ -2,8 +2,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.mailer import send_lead_email
 from app.models import Lead
+from app.notifications import notify_lead
 from app.ratelimit import client_ip, leads_limiter
 from app.schemas import ContactRequestIn, DemoRequestIn, LeadAccepted
 
@@ -43,8 +43,8 @@ def create_demo_request(
         ),
     )
 
-    # Письмо уходит в фоне: заявка уже сохранена, даже если SMTP недоступен.
-    background_tasks.add_task(send_lead_email, lead.id)
+    # Уведомления уходят в фоне: заявка уже сохранена, даже если канал недоступен.
+    background_tasks.add_task(notify_lead, lead.id)
 
     return LeadAccepted(
         id=lead.id,
@@ -73,7 +73,7 @@ def create_contact_request(
         ),
     )
 
-    background_tasks.add_task(send_lead_email, lead.id)
+    background_tasks.add_task(notify_lead, lead.id)
 
     return LeadAccepted(
         id=lead.id,

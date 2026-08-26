@@ -32,6 +32,8 @@ class Lead(Base):
 
     email_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     email_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    telegram_sent: Mapped[bool] = mapped_column(Boolean, default=False)
+    telegram_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 

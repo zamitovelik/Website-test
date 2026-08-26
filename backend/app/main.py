@@ -66,4 +66,5 @@ def health() -> HealthOut:
         status="ok",
         database=database,
         mail_configured=settings.mail_enabled,
+        telegram_configured=settings.telegram_enabled,
     )

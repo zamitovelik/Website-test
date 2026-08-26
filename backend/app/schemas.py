@@ -37,6 +37,8 @@ class LeadOut(BaseModel):
     message: str | None
     email_sent: bool
     email_error: str | None
+    telegram_sent: bool
+    telegram_error: str | None
     created_at: datetime
 
 
@@ -65,3 +67,4 @@ class HealthOut(BaseModel):
     status: str
     database: str
     mail_configured: bool
+    telegram_configured: bool
